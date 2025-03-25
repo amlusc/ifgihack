@@ -36,7 +36,8 @@ class IndexerManager:
             logger.debug("Initializing indexes...")
             self.indexes = {
                 "pygeoapi": Indexer(index_name="pygeoapi", score_treshold=0.4, k=20),
-                "geojson": Indexer(index_name="geojson", score_treshold=0.4, k=20)
+                "geojson": Indexer(index_name="geojson", score_treshold=0.4, k=20),
+                "csw": Indexer(index_name="csw", score_treshold=0.4, k=20)
             }
         finally:
             # Release the lock

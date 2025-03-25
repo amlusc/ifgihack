@@ -30,5 +30,10 @@
     ],
     "local_geojson_files": [
         "./data/"
+    ],
+    "csw_endpoints": [
+        {
+            "url": "https://atlas.thuenen.de/catalogue/csw"
+        }
     ]
 }

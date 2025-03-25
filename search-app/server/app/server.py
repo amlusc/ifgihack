@@ -31,6 +31,7 @@ from graph.routers import CollectionRouter
 from graph.graph import SpatialRetrieverGraph, State
 from connectors.pygeoapi_retriever import PyGeoAPI
 from connectors.geojson_osm import GeoJSON
+from connectors.csw_connector import CSW
 from result_explainer.search_result_explainer import SimilarityExplainer
 from indexing.indexer import Indexer
 from config.config import (
@@ -231,24 +232,31 @@ async def fetch_documents(request: Request, indexing: bool = True, api_key: APIK
     pygeoapi = PyGeoAPI()
     pygeoapi_docs = await pygeoapi.get_docs_for_all_instances()
     logger.info(f"Retrieved {len(pygeoapi_docs)} documents from pygeoapi")
+    docs_to_index += pygeoapi_docs
+
+    # Scrape from CSW
+    csw = CSW(endpoint="https://atlas.thuenen.de/catalogue/csw")
+    csw_docs = await csw.get_all_documents()
+    logger.info(f"Retrieved {len(csw_docs)} documents from CSW")
+    docs_to_index += csw_docs
 
     if indexing:
-        # Indexing received docs
-        logger.info("Indexing fetched documents in pygeoapi index")
         res_pygeoapi = request.app.state.indexes["pygeoapi"]._index(documents=pygeoapi_docs)
+        res_csw = request.app.state.indexes["csw"]._index(documents=csw_docs)
 
-        # In case the collection changes significantly, also update the custom prompts
         if (res_pygeoapi["num_added"] > 20) or (res_pygeoapi["num_updated"] > 20):
             collection_router.setup()
             global conversational_prompts
             conversational_prompts = load_conversational_prompts(collection_router=collection_router)
 
-    return {
-        'indexing_results': {
-            'pygeoapi': res_pygeoapi,
+        return {
+            'indexing_results': {
+                'pygeoapi': res_pygeoapi,
+                'csw': res_csw
+            }
         }
-    }
 
+    return {"documents": len(docs_to_index)}
 
 @app.get("/index_geojson_osm_features")
 async def index_geojson_osm(request: Request, api_key: APIKey = Depends(get_api_key)):
