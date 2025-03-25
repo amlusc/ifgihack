@@ -39,7 +39,7 @@ from config.config import (
     resolve_abs_path
 )
 
-
+csw_connector = CSWConnector()
 
 COOKIE_NAME = "search_app-session"
 
@@ -236,7 +236,7 @@ async def fetch_documents(request: Request, indexing: bool = True, api_key: APIK
 
     # Scrape from CSW
     csw = CSW(endpoint="https://atlas.thuenen.de/catalogue/csw")
-    csw_docs = await csw.get_all_documents()
+    csw_docs = await csw_connector.get_all_documents()
     logger.info(f"Retrieved {len(csw_docs)} documents from CSW")
     docs_to_index += csw_docs
 
