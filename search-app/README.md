@@ -60,6 +60,19 @@ curl -v -H "x-api-key: demo-api-key" localhost:8000/fetch_documents
 
 > :bulb: Indexing will take a while
 
+As part of the ifgi Hackathon 2025, a CSW connector was added to the backend.
+This connector is configured to fetch and embed metadata records from the Thünen Atlas, which provides a CSW (Catalogue Service for the Web) endpoint.
+
+Just like with pygeoapi, the indexing can be triggered via:
+```
+curl -v -H "x-api-key: demo-api-key" localhost:8000/fetch_documents
+```
+The connector logic and configuration can be found in:
+```
+search-app/server/connectors/csw_connector.py
+```
+Due to the time restriction of the ifgi hack, the data is only available in the backend but is not yet shown in the frontend result list or on the map.
+
 As soon as a search index is available you can either
 
 - start the demo client
