@@ -37,6 +37,7 @@ from config.config import (
     CONFIG,
     resolve_abs_path
 )
+from connectors.thuenen_atlas import ThuenenAtlasConnector
 
 
 
@@ -73,6 +74,8 @@ geojson_osm_connector = GeoJSON(tag_name="building")
 # geojson_osm_connector = GeoJSON(file_dir="https://webais.demo.52north.org/pygeoapi/collections/dresden_buildings/items",
 #                                tag_name="building")
 
+# Add connection to local json-file for thuenen atlas
+thuenen_connector = ThuenenAtlasConnector(file_path="./data/atlas.json")
 
 # Adding conversational routes. We do this here to avoid time-expensive llm calls during inference:
 collection_router = CollectionRouter()
@@ -264,6 +267,23 @@ async def index_geojson_osm(request: Request, api_key: APIKey = Depends(get_api_
 
     return res_local
 
+@app.get("/index_thuenen_atlas")
+async def index_thuenen_atlas(request: Request):
+    docs = await thuenen_connector._features_to_docs()
+    logger.info(f"Indexiere {len(docs)} Thünen-Dokumente")
+    res = request.app.state.indexes['geojson']._index(documents=docs)
+
+    if (res["num_added"] > 20) or (res["num_updated"] > 20):
+        collection_router.setup()
+        global conversational_prompts
+        conversational_prompts = load_conversational_prompts(collection_router=collection_router)
+
+    return res
+
+@app.get("/debug_geojson")
+async def debug_geojson(request: Request):
+    docs = request.app.state.indexes["geojson"].retriever.invoke("Kohlenstoffspeicherung in Waldböden")
+    return [doc.page_content for doc in docs]
 
 def generate_combined_feature_collection(doc_list: List[Document]):
     features = []
@@ -302,6 +322,12 @@ async def retrieve_geojson(request: Request, query: str):
     global conversational_prompts
     conversational_prompts = load_conversational_prompts(collection_router=collection_router)
     return feature_collection, summary
+
+
+@app.get("/retrieve_thuenen")
+async def retrieve_thuenen(request: Request, query: str):
+    results = request.app.state.indexes["geojson"].retriever.invoke(query)
+    return [doc.page_content for doc in results]
 
 
 @app.get("/clear_index")
