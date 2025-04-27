@@ -60,6 +60,30 @@ curl -v -H "x-api-key: demo-api-key" localhost:8000/fetch_documents
 
 > :bulb: Indexing will take a while
 
+As part of the ifgi Hackathon 2025, a JSON connector, as a precursor to the CSW Connector, was added to the backend. This connector is configured to fetch and embed metadata records from the Thünen Atlas, which are provided directly by a JSON-File.
+
+The indexing can be triggered via calling this command in the first step:
+
+```
+curl -v -H "x-api-key: demo-api-key" localhost:8000/index_thuenen_atlas
+```
+
+And in a second step calling this command:
+
+```
+curl -v -H "x-api-key: demo-api-key" localhost:8000/fetch_documents
+```
+
+:bulb: For unknown reasons the indexing will only work if those prompts are used in the given order. 
+
+The connector logic and configuration can be found in:
+
+```
+search-app/server/connectors/thuenen_atlas.py
+```
+
+Due to the time restriction of the ifgi hack, the data is only available in the backend but is not yet shown in the frontend result list or on the map.
+
 As soon as a search index is available you can either
 
 - start the demo client

@@ -267,6 +267,7 @@ async def index_geojson_osm(request: Request, api_key: APIKey = Depends(get_api_
 
     return res_local
 
+# Endpoint to (re)index all documents from the Thünen Atlas into the "geojson" index.
 @app.get("/index_thuenen_atlas")
 async def index_thuenen_atlas(request: Request):
     docs = await thuenen_connector._features_to_docs()
@@ -280,6 +281,8 @@ async def index_thuenen_atlas(request: Request):
 
     return res
 
+# Quick check to see if anything from the Thünen data actually made it into the "geojson" index.
+# Used mainly for fast backend debugging when indexing doesn't seem to work.
 @app.get("/debug_geojson")
 async def debug_geojson(request: Request):
     docs = request.app.state.indexes["geojson"].retriever.invoke("Kohlenstoffspeicherung in Waldböden")
@@ -324,6 +327,8 @@ async def retrieve_geojson(request: Request, query: str):
     return feature_collection, summary
 
 
+# Another quick check: allows sending any query to the "geojson" index to see what comes back.
+# Also mainly used to test if indexing and retrieval on the backend side works properly.
 @app.get("/retrieve_thuenen")
 async def retrieve_thuenen(request: Request, query: str):
     results = request.app.state.indexes["geojson"].retriever.invoke(query)
